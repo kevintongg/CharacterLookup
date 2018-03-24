@@ -1,14 +1,12 @@
-const config = require('../config.json');
-
-const blizzard = require('blizzard.js').initialize(
-  {
-    apikey: config.apiKey
-  }
-);
-
 import React from 'react';
 import ReactDOM from 'react-dom';
+import config from './config/config.json';
 import './index.css';
+
+const blizzard = require('blizzard.js').initialize({
+  apikey: config.apiKey,
+});
+
 
 const FACTION_LIST = {
   ALLIANCE: 'Alliance',
@@ -53,27 +51,25 @@ const CLASS_LIST = {
 class App extends React.Component {
   constructor(props) {
     super(props);
-    
+
     this.handleQuery = this.handleQuery.bind(this);
-    
+
     this.state = {
       data: null,
     };
   }
-  
+
   handleQuery(data) {
-    this.setState(
-      {
-        data: data,
-      }
-    );
+    this.setState({
+      data,
+    });
   }
-  
+
   render() {
     return (
       <div>
-        <Form onQuery={this.handleQuery}/>
-        <Data data={this.state.data}/>
+        <Form onQuery={this.handleQuery} />
+        <Data data={this.state.data} />
       </div>
     );
   }
@@ -82,19 +78,18 @@ class App extends React.Component {
 class Form extends React.Component {
   constructor(props) {
     super(props);
-    
     this.handleSubmit = this.handleSubmit.bind(this);
   }
-  
+
   handleSubmit(e) {
     e.preventDefault();
-    
+
     const form = ReactDOM.findDOMNode(this);
     const data = new FormData(form);
-    
+
     console.log(data.get('name'));
     console.log(data.get('realm'));
-    
+
     blizzard.wow.character(
       ['profile'],
       {
@@ -102,17 +97,19 @@ class Form extends React.Component {
         realm: data.get('realm'),
         name: data.get('name'),
       }
-    ).then(response => {
+    ).then((response) => {
       this.props.onQuery(response.data);
     });
   }
-  
+
   render() {
     return (
       <form onSubmit={this.handleSubmit}>
-        <input type="text" name="name" placeholder="Character Name"/>
-        <input type="text" name="realm" placeholder="Realm"/>
-        <button type="submit">Submit</button>
+        <input type="text" name="name" placeholder="Character Name" className="form-control" />
+        <br />
+        <input type="text" name="realm" placeholder="Realm" className="form-control" />
+        <br />
+        <button type="submit" className="btn btn-outline-primary">Submit</button>
       </form>
     );
   }
@@ -122,7 +119,7 @@ class Data extends React.Component {
   constructor(props) {
     super(props);
   }
-  
+
   factionNumberToFactionName(number) {
     switch (number) {
       case 0:
@@ -135,7 +132,7 @@ class Data extends React.Component {
         return FACTION_LIST.UNKNOWN;
     }
   }
-  
+
   raceNumberToRaceName(number) {
     switch (number) {
       case 1:
@@ -170,7 +167,7 @@ class Data extends React.Component {
         return RACE_LIST.UNKNOWN;
     }
   }
-  
+
   classNumberToClassName(number) {
     switch (number) {
       case 1:
@@ -201,23 +198,32 @@ class Data extends React.Component {
         return CLASS_LIST.UNKNOWN;
     }
   }
-  
+
   render() {
     if (this.props.data === null) {
       return <div>Enter a name, and a realm to get started.</div>;
     }
-    
+
     const faction = this.factionNumberToFactionName(this.props.data.faction);
     const race = this.raceNumberToRaceName(this.props.data.race);
     const className = this.classNumberToClassName(this.props.data.class);
-    
-    return <div>
-      Server: { this.props.data.realm }
-      <br/>
-      Name: { this.props.data.name }, Level { this.props.data.level } { faction } { race } { className }
-      <br/>
-      Achievement Points: { this.props.data.achievementPoints }
-    </div>;
+    const avatar = `https://render-us.worldofwarcraft.com/character/${this.props.data.thumbnail}`;
+
+    return (
+      <div>
+        <strong>{ this.props.data.realm }
+          <br />
+          { this.props.data.name },
+          Level { this.props.data.level } { faction } { race } { className }
+          <br />
+          { this.props.data.achievementPoints } Achievement Points
+        </strong>
+        <br />
+        <img
+          src={ avatar }
+          alt=" "
+        />
+      </div>);
   }
 }
 
